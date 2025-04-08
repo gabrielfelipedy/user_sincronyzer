@@ -1,4 +1,4 @@
-export class Clock {
+export interface Clock {
     "ip": string;
     "user": string;
     "password": string;
