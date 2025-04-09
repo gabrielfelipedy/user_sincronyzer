@@ -7,7 +7,7 @@ axios.defaults.insecureHTTPParser = true;
 export const login = async (clock: Clock | undefined) => {
   if(!clock) return null
 
-  console.log('CLOCK IP GOT: ', clock.ip)
+  //console.log('CLOCK IP GOT: ', clock.ip)
 
   try {
     const response = await axios.post(`https://${clock.ip}/login.fcgi`, {
@@ -25,7 +25,7 @@ export const login = async (clock: Clock | undefined) => {
 export const logout = async (clock: Clock | undefined, session: string) => {
   if(!clock) return null
 
-  console.log('CLOCK IP GOT: ', clock.ip)
+  //console.log('CLOCK IP GOT: ', clock.ip)
 
   try {
     const response = await axios.post(`https://${clock.ip}/logout.fcgi?session=${session}`);

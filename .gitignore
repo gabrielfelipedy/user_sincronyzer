@@ -43,3 +43,7 @@ test/*.js
 
 .env
 TODO.txt
+
+# Dist files
+
+dist/*

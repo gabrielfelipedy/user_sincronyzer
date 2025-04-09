@@ -1,44 +1,45 @@
 import * as dotenv from "dotenv";
 import { login, logout } from "./src/controllers/AuthController.js";
-import { getUsers } from "./src/controllers/UserController.js";
-import { parseCSV } from "./src/utils/Parsers.js";
-import { mergeClockData } from "./src/utils/Merger.js";
-import { WriteClockUsers } from "./src/controllers/ClockController.js";
+import { parseDuplicatedData } from "./src/utils/Parsers.js";
+import { getAfdByInitialNSR, getAllClocks, getLastNSR } from "./src/controllers/ClockController.js";
 dotenv.config();
-const clocks = [
-    {
-        ip: "172.18.5.241",
-        user: "admin",
-        password: "admin",
-    },
-    {
-        ip: "172.18.5.240",
-        user: "admin",
-        password: "admin",
-    },
-];
+const clocks = await getAllClocks();
+console.log(clocks);
+const last_nsrs = await getLastNSR();
+console.log(last_nsrs);
+// const session = await login(clocks[0]);
+// const afd = await getAfdByInitialNSR(session, clocks[0], last_nsrs[0].last_nsr)
+//console.log(afd)
+const afds = [];
 const clocks_data = [];
 const parsed_data = await Promise.all(clocks.map(async (clock) => {
     const session = await login(clock);
     if (session) {
-        const users_string = await getUsers(clock, session);
+        const last_nsr = last_nsrs.find((last_nsr) => last_nsr.clock_id === clock.id);
+        const afd = await getAfdByInitialNSR(session, clock, Number(last_nsr.last_nsr) + 1);
         await logout(clock, session);
-        return parseCSV(users_string);
+        const afd_object = {
+            "clock_id": clock.id,
+            "afd": afd
+        };
+        afds.push(afd_object);
     }
     else {
         console.log("Failed login");
         return [];
     }
 }));
-// Flatten and push all users
-parsed_data.forEach((users) => {
-    clocks_data.push(users);
-});
-const mergedData = mergeClockData(clocks_data);
-for (const clock of clocks) {
-    const session = await login(clock);
-    if (session) {
-        await await WriteClockUsers(mergedData, clock, session);
-        await logout(clock, session);
-    }
-}
+console.log(afds);
+console.log("Dados processados:");
+const parsedDuplicated = parseDuplicatedData(afds);
+console.log(parsedDuplicated);
+// const mergedData = mergeClockData(clocks_data);
+// for(const clock of clocks)
+// {
+//     const session = await login(clock)
+//     if(session)
+//     {
+//         await await WriteClockUsers(mergedData, clock, session);
+//         await logout(clock, session);
+//     }
+// }
