@@ -43,6 +43,7 @@ test/*.js
 
 .env
 TODO.txt
+TESTE_SHEET.txt
 
 # Dist files
 

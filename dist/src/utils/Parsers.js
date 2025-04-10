@@ -1,53 +1,49 @@
-export const parseCSV = (csv) => {
-    if (!csv)
-        return [];
-    csv = csv.trim();
-    if (!csv)
-        return [];
-    const lines = csv.split("\n");
-    const line_headers = lines.shift();
-    if (!line_headers)
-        return [];
-    const headers = line_headers.split(";").map((header) => header.trim());
-    const data = lines
-        .filter((line) => line.trim() !== "")
-        .map((line) => {
-        const values = line.split(";").map((value) => value.trim());
-        const dataObject = {};
-        headers.forEach((header, index) => {
-            dataObject[header] = values[index];
-        });
-        return dataObject;
-    });
-    return data;
-};
-function escapeCsvValue(value) {
-    if (value === null || value === undefined) {
-        return ""; // Represent null/undefined as empty string
-    }
-    const stringValue = String(value); // Convert boolean, number, etc., to string
-    // Check if quoting is needed (contains delimiter, quote, or newline)
-    if (/[";\n]/.test(stringValue)) {
-        // Escape internal double quotes by doubling them
-        const escapedValue = stringValue.replace(/"/g, '""');
-        // Wrap the entire value in double quotes
-        return `"${escapedValue}"`;
-    }
-    // No special characters, return as is
-    return stringValue;
+export function parseCsv(csvString) {
+    const allLines = csvString.trim().split(/\r?\n/); // Split by newline, handle \r\n and \n
+    const header = allLines.length > 0 ? allLines[0] : '';
+    const lines = allLines.length > 1 ? allLines.slice(1) : [];
+    return { header, lines };
 }
+function getCpfFromCsvLine(line, separator = ';') {
+    if (!line)
+        return null;
+    const columns = line.split(separator);
+    if (!columns || !columns[0])
+        return null;
+    return columns.length > 0 ? columns[0].trim() : null;
+}
+// function escapeCsvValue(value: any): string {
+//   if (value === null || value === undefined) {
+//     return ""; // Represent null/undefined as empty string
+//   }
+//   const stringValue = String(value); // Convert boolean, number, etc., to string
+//   // Check if quoting is needed (contains delimiter, quote, or newline)
+//   if (/[";\n]/.test(stringValue)) {
+//     // Escape internal double quotes by doubling them
+//     const escapedValue = stringValue.replace(/"/g, '""');
+//     // Wrap the entire value in double quotes
+//     return `"${escapedValue}"`;
+//   }
+//   // No special characters, return as is
+//   return stringValue;
+// }
 export function parseAFDString(afdString, clock_id) {
     const timestampStart = 10;
     const timestampEnd = 34;
     const cpfStart = 36;
     const cpfEnd = 47;
+    const nsrStart = 0;
+    const nsrEnd = 9;
+    const opStart = 34;
+    const opEnd = 35;
     if (afdString.length < cpfEnd) {
         console.log('Invalid string afd');
         return null;
     }
     const timestampStr = afdString.substring(timestampStart, timestampEnd);
     const cpf = afdString.substring(cpfStart, cpfEnd);
-    const operation = afdString.substring(34, 35);
+    const operation = afdString.substring(opStart, opEnd);
+    const nsr = Number(afdString.substring(nsrStart, nsrEnd));
     const timestamp = new Date(timestampStr);
     if (isNaN(timestamp.getTime())) {
         console.log("Invalid timestamp");
@@ -58,6 +54,7 @@ export function parseAFDString(afdString, clock_id) {
         cpf,
         operation,
         timestamp,
+        nsr,
         fullAfdString: afdString,
     };
 }
@@ -76,30 +73,47 @@ export function parseDuplicatedData(data) {
             }
         }
     }
-    return Array.from(latestEntriesByCpf.values()).sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-}
-export const usersToCSV = (users) => {
-    if (!users || users.length === 0) {
-        return "";
+    const groupedByClockId = new Map;
+    for (const record of Array.from(latestEntriesByCpf.values())) {
+        const key = record.clock_id;
+        if (groupedByClockId.has(key)) {
+            groupedByClockId.get(key)?.push(record);
+        }
+        else {
+            groupedByClockId.set(key, [record]);
+        }
     }
-    const headers = [
-        "cpf",
-        "nome",
-        "administrador",
-        "matricula",
-        "rfid",
-        "codigo",
-        "senha",
-        "barras",
-        "digitais",
-    ];
-    const headerString = headers.join(";");
-    const dataRows = users.map((user) => {
-        const rowValues = headers.map((header) => {
-            const value = user[header];
-            return escapeCsvValue(value);
-        });
-        return rowValues.join(";");
+    const result = Array.from(groupedByClockId.entries()).map(([clockId, records]) => {
+        const sortedRecords = records.sort((a, b) => a.nsr - b.nsr);
+        return {
+            clock_id: clockId,
+            afd: sortedRecords
+        };
     });
-    return [headerString, ...dataRows].join("\r\n");
-};
+    return result;
+}
+// export const usersToCSV = (users: User[] | undefined) => {
+//   if (!users || users.length === 0) {
+//     return "";
+//   }
+//   const headers: (keyof User)[] = [
+//     "cpf",
+//     "nome",
+//     "administrador",
+//     "matricula",
+//     "rfid",
+//     "codigo",
+//     "senha",
+//     "barras",
+//     "digitais",
+//   ];
+//   const headerString = headers.join(";");
+//   const dataRows = users.map((user) => {
+//     const rowValues = headers.map((header) => {
+//       const value = user[header];
+//       return escapeCsvValue(value);
+//     });
+//     return rowValues.join(";");
+//   });
+//   return [headerString, ...dataRows].join("\r\n");
+// };

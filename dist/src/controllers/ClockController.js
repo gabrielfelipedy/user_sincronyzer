@@ -1,26 +1,31 @@
 import fs from "fs";
 import iconv from "iconv-lite";
-import { usersToCSV } from "../utils/Parsers.js";
 import axios from "axios";
 import { processLine } from "../utils/Processer.js";
-export const WriteClockUsers = async (users, clock, session) => {
-    if (!users || !clock || !session)
-        return "";
-    const raw_csv = usersToCSV(users);
-    try {
-        const config = {
-            headers: {
-                "content-Type": "application/octet-stream",
-                "content-Length": new TextEncoder().encode(raw_csv).length,
-            },
-        };
-        const response = await axios.post(`https:${clock.ip}/import_users_csv.fcgi?session=${session}&mode=671`, raw_csv, config);
-        console.log("CSV uploaded sucessfully");
-    }
-    catch (error) {
-        console.error(error);
-    }
-};
+// export const WriteClockUsers = async (
+//   users: User[] | undefined,
+//   clock: Clock,
+//   session: string
+// ) => {
+//   if (!users || !clock || !session) return "";
+//   const raw_csv = usersToCSV(users);
+//   try {
+//     const config = {
+//       headers: {
+//         "content-Type": "application/octet-stream",
+//         "content-Length": new TextEncoder().encode(raw_csv).length,
+//       },
+//     };
+//     const response: AxiosResponse = await axios.post(
+//       `https:${clock.ip}/import_users_csv.fcgi?session=${session}&mode=671`,
+//       raw_csv,
+//       config
+//     );
+//     console.log("CSV uploaded sucessfully");
+//   } catch (error) {
+//     console.error(error);
+//   }
+// };
 export async function getAllClocks() {
     try {
         const raw_clocks = fs.readFileSync("./clocks.json", "utf-8");

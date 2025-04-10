@@ -2,13 +2,13 @@ import * as dotenv from "dotenv";
 import iconv from "iconv-lite";
 import { login, logout } from "./src/controllers/AuthController.js";
 import { getUsers } from "./src/controllers/UserController.js";
-import { parseCSV, parseDuplicatedData, usersToCSV } from "./src/utils/Parsers.js";
 import { Clock } from "./src/models/interfaces/Clock.js";
-import { User } from "./src/models/interfaces/User.js";
-import { mergeClockData } from "./src/utils/Merger.js";
-import { getAfdByInitialNSR, getAllClocks, getLastNSR, WriteClockUsers } from "./src/controllers/ClockController.js";
 import { NSR } from "./src/models/interfaces/NSR.js";
 import { AFD } from "./src/models/interfaces/AFD.js";
+import * as util from 'util';
+import { RawCSV } from "./src/models/interfaces/RawCSV.js";
+import { parseCsv, parseDuplicatedData } from "./src/utils/Parsers.js";
+import { getAfdByInitialNSR, getAllClocks, getLastNSR } from "./src/controllers/ClockController.js";
 
 dotenv.config();
 
@@ -24,9 +24,10 @@ console.log(last_nsrs)
 //console.log(afd)
 
 const afds: AFD[] = []
-const clocks_data: User[][] = [];
 
-const parsed_data = await Promise.all(
+const raw_csvs: RawCSV[] = []
+
+await Promise.all(
   clocks.map(async (clock: Clock) => {
     const session = await login(clock);
 
@@ -36,6 +37,16 @@ const parsed_data = await Promise.all(
       );
 
       const afd = await getAfdByInitialNSR(session, clock, Number(last_nsr.last_nsr) + 1)
+      const raw_csv = await getUsers(clock, session)
+      raw_csvs.push(
+        {
+          "clock_id": clock.id,
+          "csv": raw_csv
+        }
+      )
+
+      console.log(parseCsv(raw_csv))
+
       await logout(clock, session);
 
       const afd_object = {
@@ -54,20 +65,9 @@ const parsed_data = await Promise.all(
 
 
 console.log(afds)
+//console.log(raw_csvs)
 
-console.log("Dados processados:")
+// console.log("Dados processados:")
 const parsedDuplicated = parseDuplicatedData(afds)
+console.log(util.inspect(parsedDuplicated, { showHidden: false, depth: null, colors: true }));
 
-console.log(parsedDuplicated)
-// const mergedData = mergeClockData(clocks_data);
-
-// for(const clock of clocks)
-// {
-//     const session = await login(clock)
-
-//     if(session)
-//     {
-//         await await WriteClockUsers(mergedData, clock, session);
-//         await logout(clock, session);
-//     }
-// }
