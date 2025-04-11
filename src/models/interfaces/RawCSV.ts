@@ -1,4 +1,4 @@
 export interface RawCSV {
     clock_id: number;
-    csv: string;
+    csv: (string | null)[];
 }

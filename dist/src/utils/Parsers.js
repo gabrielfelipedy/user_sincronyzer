@@ -2,9 +2,9 @@ export function parseCsv(csvString) {
     const allLines = csvString.trim().split(/\r?\n/); // Split by newline, handle \r\n and \n
     const header = allLines.length > 0 ? allLines[0] : '';
     const lines = allLines.length > 1 ? allLines.slice(1) : [];
-    return { header, lines };
+    return lines;
 }
-function getCpfFromCsvLine(line, separator = ';') {
+export function getCpfFromCsvLine(line, separator = ';') {
     if (!line)
         return null;
     const columns = line.split(separator);
@@ -73,24 +73,28 @@ export function parseDuplicatedData(data) {
             }
         }
     }
-    const groupedByClockId = new Map;
-    for (const record of Array.from(latestEntriesByCpf.values())) {
-        const key = record.clock_id;
-        if (groupedByClockId.has(key)) {
-            groupedByClockId.get(key)?.push(record);
-        }
-        else {
-            groupedByClockId.set(key, [record]);
-        }
-    }
-    const result = Array.from(groupedByClockId.entries()).map(([clockId, records]) => {
-        const sortedRecords = records.sort((a, b) => a.nsr - b.nsr);
-        return {
-            clock_id: clockId,
-            afd: sortedRecords
-        };
-    });
-    return result;
+    return latestEntriesByCpf;
+    // const groupedByClockId = new Map<number, Record[]>
+    // for(const record of Array.from(latestEntriesByCpf.values()))
+    // {
+    //   const key = record.clock_id
+    //   if(groupedByClockId.has(key))
+    //   {
+    //     groupedByClockId.get(key)?.push(record)
+    //   }
+    //   else
+    //   {
+    //     groupedByClockId.set(key, [record])
+    //   }
+    // }
+    // const result: AFDProcessed[] = Array.from(groupedByClockId.entries()).map(([clockId, records]) => {
+    //   const sortedRecords = records.sort((a, b) => a.nsr - b.nsr); 
+    //   return {
+    //     clock_id: clockId,
+    //     afd: sortedRecords
+    //   };
+    // });
+    // return result;
 }
 // export const usersToCSV = (users: User[] | undefined) => {
 //   if (!users || users.length === 0) {

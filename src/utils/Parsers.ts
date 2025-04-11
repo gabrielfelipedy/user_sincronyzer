@@ -4,16 +4,15 @@ import { Record } from "../models/interfaces/Record.js";
 
 
 
-export function parseCsv(csvString: string): { header: string | undefined; lines: string[] } {
+export function parseCsv(csvString: string): (string)[]  {
   const allLines = csvString.trim().split(/\r?\n/); // Split by newline, handle \r\n and \n
   const header = allLines.length > 0 ? allLines[0] : '';
   const lines = allLines.length > 1 ? allLines.slice(1) : [];
-  return { header, lines };
+  return lines;
 }
 
 
-
-function getCpfFromCsvLine(line: string, separator = ';'): string | null {
+export function getCpfFromCsvLine(line: string, separator = ';'): string | null {
   if (!line) return null;
   const columns = line.split(separator);
 
@@ -107,34 +106,36 @@ export function parseDuplicatedData(data: AFD[])
         }
     }
 
-    const groupedByClockId = new Map<number, Record[]>
+    return latestEntriesByCpf
 
-    for(const record of Array.from(latestEntriesByCpf.values()))
-    {
-      const key = record.clock_id
+    // const groupedByClockId = new Map<number, Record[]>
 
-      if(groupedByClockId.has(key))
-      {
-        groupedByClockId.get(key)?.push(record)
-      }
-      else
-      {
-        groupedByClockId.set(key, [record])
-      }
-    }
+    // for(const record of Array.from(latestEntriesByCpf.values()))
+    // {
+    //   const key = record.clock_id
+
+    //   if(groupedByClockId.has(key))
+    //   {
+    //     groupedByClockId.get(key)?.push(record)
+    //   }
+    //   else
+    //   {
+    //     groupedByClockId.set(key, [record])
+    //   }
+    // }
 
  
-    const result: AFDProcessed[] = Array.from(groupedByClockId.entries()).map(([clockId, records]) => {
+    // const result: AFDProcessed[] = Array.from(groupedByClockId.entries()).map(([clockId, records]) => {
      
-      const sortedRecords = records.sort((a, b) => a.nsr - b.nsr); 
+    //   const sortedRecords = records.sort((a, b) => a.nsr - b.nsr); 
   
-      return {
-        clock_id: clockId,
-        afd: sortedRecords
-      };
-    });
+    //   return {
+    //     clock_id: clockId,
+    //     afd: sortedRecords
+    //   };
+    // });
   
-    return result;
+    // return result;
 }
 
 
