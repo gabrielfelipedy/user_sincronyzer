@@ -4,21 +4,21 @@ import { Record } from "../models/interfaces/Record.js";
 
 
 
-export function parseCsv(csvString: string): (string)[]  {
+export function parseCsv(csvString: string): { header: string | undefined; lines: string[] }  {
   const allLines = csvString.trim().split(/\r?\n/); // Split by newline, handle \r\n and \n
   const header = allLines.length > 0 ? allLines[0] : '';
   const lines = allLines.length > 1 ? allLines.slice(1) : [];
-  return lines;
+  return { header, lines}
 }
 
 
-export function getCpfFromCsvLine(line: string, separator = ';'): string | null {
+export function getCpfFromCsvLine(line: string, separator = ';'): number | null {
   if (!line) return null;
   const columns = line.split(separator);
 
   if(!columns || !columns[0]) return null
 
-  return columns.length > 0 ? columns[0].trim() : null;
+  return columns.length > 0 ? Number(columns[0].trim()) : null;
 }
 
 
@@ -58,7 +58,7 @@ export function parseAFDString(afdString: string, clock_id: number): Record | nu
   }
 
   const timestampStr = afdString.substring(timestampStart, timestampEnd);
-  const cpf = afdString.substring(cpfStart, cpfEnd);
+  const cpf = Number(afdString.substring(cpfStart, cpfEnd));
   const operation = afdString.substring(opStart, opEnd);
   const nsr = Number(afdString.substring(nsrStart, nsrEnd))
 
@@ -86,7 +86,7 @@ export function parseAFDString(afdString: string, clock_id: number): Record | nu
 
 export function parseDuplicatedData(data: AFD[])
 {
-    const latestEntriesByCpf = new Map<string, Record>();
+    const latestEntriesByCpf = new Map<number, Record>();
 
     for(const record of data)
     {

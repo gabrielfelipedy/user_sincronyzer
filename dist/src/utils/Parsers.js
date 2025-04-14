@@ -2,7 +2,7 @@ export function parseCsv(csvString) {
     const allLines = csvString.trim().split(/\r?\n/); // Split by newline, handle \r\n and \n
     const header = allLines.length > 0 ? allLines[0] : '';
     const lines = allLines.length > 1 ? allLines.slice(1) : [];
-    return lines;
+    return { header, lines };
 }
 export function getCpfFromCsvLine(line, separator = ';') {
     if (!line)
@@ -10,7 +10,7 @@ export function getCpfFromCsvLine(line, separator = ';') {
     const columns = line.split(separator);
     if (!columns || !columns[0])
         return null;
-    return columns.length > 0 ? columns[0].trim() : null;
+    return columns.length > 0 ? Number(columns[0].trim()) : null;
 }
 // function escapeCsvValue(value: any): string {
 //   if (value === null || value === undefined) {
@@ -41,7 +41,7 @@ export function parseAFDString(afdString, clock_id) {
         return null;
     }
     const timestampStr = afdString.substring(timestampStart, timestampEnd);
-    const cpf = afdString.substring(cpfStart, cpfEnd);
+    const cpf = Number(afdString.substring(cpfStart, cpfEnd));
     const operation = afdString.substring(opStart, opEnd);
     const nsr = Number(afdString.substring(nsrStart, nsrEnd));
     const timestamp = new Date(timestampStr);

@@ -2,30 +2,25 @@ import fs from "fs";
 import iconv from "iconv-lite";
 import axios from "axios";
 import { processLine } from "../utils/Processer.js";
-// export const WriteClockUsers = async (
-//   users: User[] | undefined,
-//   clock: Clock,
-//   session: string
-// ) => {
-//   if (!users || !clock || !session) return "";
-//   const raw_csv = usersToCSV(users);
-//   try {
-//     const config = {
-//       headers: {
-//         "content-Type": "application/octet-stream",
-//         "content-Length": new TextEncoder().encode(raw_csv).length,
-//       },
-//     };
-//     const response: AxiosResponse = await axios.post(
-//       `https:${clock.ip}/import_users_csv.fcgi?session=${session}&mode=671`,
-//       raw_csv,
-//       config
-//     );
-//     console.log("CSV uploaded sucessfully");
-//   } catch (error) {
-//     console.error(error);
-//   }
-// };
+export const WriteClockUsers = async (users, clock, session) => {
+    if (!users || !clock || !session)
+        return "";
+    try {
+        const config = {
+            headers: {
+                "content-Type": "application/octet-stream",
+                "content-Length": new TextEncoder().encode(users).length,
+            },
+        };
+        const response = await axios.post(`https:${clock.ip}/import_users_csv.fcgi?session=${session}&mode=671`, users, config);
+        console.log("CSV uploaded sucessfully");
+        return true;
+    }
+    catch (error) {
+        console.error(error);
+        return false;
+    }
+};
 export async function getAllClocks() {
     try {
         const raw_clocks = fs.readFileSync("./clocks.json", "utf-8");
@@ -66,13 +61,13 @@ export async function getLastNSR() {
 }
 export async function getAfdByInitialNSR(session, clock, initial_nsr) {
     //console.log("initial NSR recebido ", initial_nsr)
-    let buffer = Buffer.from('');
+    let buffer = Buffer.from("");
     let registros = [];
     console.log(`\nInitial NSR: ${initial_nsr}`);
     //PREPARA A URL PARA OBTER O AFD
     const url = new URL(`https://${clock.ip}/get_afd.fcgi`);
     url.searchParams.append("session", session);
-    url.searchParams.append("mode", '671');
+    url.searchParams.append("mode", "671");
     try {
         //OBTÉM O AFD A PARTIR DO NSR INICIAL
         const response = await axios.post(url.toString(), {
@@ -126,3 +121,41 @@ export async function getAfdByInitialNSR(session, clock, initial_nsr) {
         return null;
     }
 }
+function SaveNSR(clock_id, nsr) {
+    try {
+        const nsrFileContent = fs.readFileSync("./nsr.json", "utf-8");
+        const dadosLidos = JSON.parse(nsrFileContent);
+        const clock_to_update = dadosLidos.find((clock) => clock.clock_id === clock_id);
+        if (clock_to_update) {
+            clock_to_update.last_nsr = nsr;
+            //GRAVA OS DADOS INTERPRETADOS
+            fs.writeFileSync("nsr.json", JSON.stringify(dadosLidos, null, 2));
+            console.log("Dados foram gravados");
+        }
+        else {
+            console.log("No clock found");
+        }
+    }
+    catch (error) {
+        console.error("Erro ao interpretar registro:", error);
+        return null;
+    }
+}
+export const RecordLastNSR = (data) => {
+    const latestNSR = new Map();
+    for (const record of data.values()) {
+        if (record) {
+            const currentClockID = record.clock_id;
+            const currentNSR = record.nsr;
+            const existingEntry = latestNSR.get(currentClockID);
+            if (!existingEntry || currentNSR > existingEntry) {
+                latestNSR.set(currentClockID, currentNSR);
+                SaveNSR(currentClockID, currentNSR);
+            }
+        }
+        else {
+            console.log("Invalid inputs");
+        }
+    }
+    return latestNSR;
+};

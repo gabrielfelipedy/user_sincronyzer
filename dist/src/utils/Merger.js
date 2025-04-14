@@ -2,7 +2,6 @@
 //   data: (User[] | undefined)[] | undefined
 // ): User[] | undefined => {
 //   if (!data || data.length === 0) return [];
-export {};
 //   const mergedMap = new Map<string, User>();
 //   for (const singleData of data) {
 //     if (!singleData || singleData.length === 0) {
@@ -22,3 +21,7 @@ export {};
 //   }
 //   return Array.from(mergedMap.values());
 // };
+export const MergeUsers = (users) => {
+    const stringValues = Array.from(users.values()).map(user => String(user));
+    return stringValues.join('\n');
+};
