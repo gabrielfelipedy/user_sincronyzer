@@ -20,7 +20,7 @@ await Promise.all(clocks.map(async (clock) => {
     const session = await login(clock);
     if (session) { //if valid sessiojn
         const last_nsr = last_nsrs.find((last_nsr) => last_nsr.clock_id === clock.id);
-        const afd = await getAfdByInitialNSR(session, clock, Number(last_nsr.last_nsr) + 1); //get afd by intial nsr
+        const afd = await getAfdByInitialNSR(session, clock, Number(last_nsr.last_nsr) + 2); //get afd by intial nsr
         //console.log(parseCsv(raw_csv))
         await logout(clock, session);
         const afd_object = {

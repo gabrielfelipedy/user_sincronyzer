@@ -40,7 +40,7 @@ await Promise.all(
         (last_nsr: NSR) => last_nsr.clock_id === clock.id
       );
 
-      const afd = await getAfdByInitialNSR(session, clock, Number(last_nsr.last_nsr) + 1) //get afd by intial nsr
+      const afd = await getAfdByInitialNSR(session, clock, Number(last_nsr.last_nsr) + 2) //get afd by intial nsr
 
       //console.log(parseCsv(raw_csv))
 
