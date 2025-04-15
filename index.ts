@@ -1,3 +1,4 @@
+import * as dotenv from "dotenv";
 import { login, logout } from "./src/controllers/AuthController.js";
 import { getUsers } from "./src/controllers/UserController.js";
 import { Clock } from "./src/models/interfaces/Clock.js";
@@ -8,6 +9,8 @@ import { RawCSV } from "./src/models/interfaces/RawCSV.js";
 import { getCpfFromCsvLine, parseCsv, parseDuplicatedData } from "./src/utils/Parsers.js";
 import { getAfdByInitialNSR, getAllClocks, getLastNSR, RecordLastNSR, WriteClockUsers } from "./src/controllers/ClockController.js";
 import { MergeUsers } from "./src/utils/Merger.js";
+
+dotenv.config();
 
 //GET ALL TIME CLOCKS
 const clocks = await getAllClocks()

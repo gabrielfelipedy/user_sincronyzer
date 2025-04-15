@@ -48,3 +48,4 @@ TESTE_SHEET.txt
 # Dist files
 
 dist/*
+dist/bundle.js
