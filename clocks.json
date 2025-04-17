@@ -1,0 +1,14 @@
+[
+  {
+    "id": 5,
+    "ip": "172.18.5.240",
+    "user": "admin",
+    "password": "admin"
+  },
+  {
+    "id": 4,
+    "ip": "172.18.5.241",
+    "user": "admin",
+    "password": "admin"
+  }
+]
