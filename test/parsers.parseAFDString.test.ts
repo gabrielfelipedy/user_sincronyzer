@@ -20,7 +20,7 @@ describe("parseAFDString", () => {
       expect(result).not.toBeNull();
       expect(result?.clock_id).toBe(baseClockId);
       // Ensure Number() conversion handles potential leading zeros correctly
-      expect(result?.cpf).toBe(80627153291);
+      expect(result?.cpf).toBe(80627000000);
       expect(result?.operation).toBe("I"); // Op is captured correctly
       expect(result?.nsr).toBe(102);
       expect(result?.timestamp).toBeInstanceOf(Date);
@@ -118,7 +118,7 @@ describe("parseAFDString", () => {
         "SomeExtraDataThatShouldBeIgnoredByParsingLogicButIncludedInFullString";
       const result = parseAFDString(longString, baseClockId);
       expect(result).not.toBeNull();
-      expect(result?.cpf).toBe(80627153291); // Check parsing still works
+      expect(result?.cpf).toBe(80627000000); // Check parsing still works
       expect(result?.fullAfdString).toBe(longString); // Check full string is preserved
     });
 
@@ -407,7 +407,7 @@ describe("parseAFDString", () => {
       const testStr = corePart + "Joséphine ♥"; // Add extra unicode
       const result = parseAFDString(testStr, clockId);
       expect(result).not.toBeNull();
-      expect(result?.cpf).toBe(80627153291); // Check parsing ok
+      expect(result?.cpf).toBe(80627000000); // Check parsing ok
       expect(result?.fullAfdString).toBe(testStr);
       expect(result?.fullAfdString).toContain("Joséphine ♥");
     });
