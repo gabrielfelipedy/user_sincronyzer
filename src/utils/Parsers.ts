@@ -1,8 +1,8 @@
 import { AFD } from "../models/interfaces/AFD.js";
-import { AFDProcessed } from "../models/interfaces/AFDProcessed.js";
 import { Record } from "../models/interfaces/Record.js";
 
 
+//Divides a CSV into header and lines
 export function parseCsv(csvString: string): { header: string | undefined; lines: string[] }  {
   const allLines = csvString.trim().split(/\r?\n/); // Split by newline, handle \r\n and \n
   const header = allLines.length > 0 ? allLines[0] : '';
@@ -26,6 +26,7 @@ export function getCpfFromCsvLine(line: string, separator = ';'): number | null 
 }
 
 
+// TODO: THROW EXCEPTIONS TO KNOW WHAT EXCALTY IS EVERY THING
 function isValidateEntries(timestamp: string, cpf: string, op: string, nsr: string)
 {
   //verifys if are not passed empty values, null, undefined of NaN
@@ -94,8 +95,12 @@ export function parseDuplicatedData(data: AFD[])
 
     for(const record of data)
     {
+        if(!record) continue
+
         for(const afdString of record.afd)
         {
+          if(!afdString) continue
+
             const parsedRecord = parseAFDString(afdString, record.clock_id)
 
             if(parsedRecord)

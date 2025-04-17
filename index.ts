@@ -4,7 +4,6 @@ import { getUsers } from "./src/controllers/UserController.js";
 import { Clock } from "./src/models/interfaces/Clock.js";
 import { NSR } from "./src/models/interfaces/NSR.js";
 import { AFD } from "./src/models/interfaces/AFD.js";
-import * as util from "util";
 import { RawCSV } from "./src/models/interfaces/RawCSV.js";
 import {
   getCpfFromCsvLine,
@@ -30,19 +29,21 @@ const clocks = await getAllClocks();
 const last_nsrs = await getLastNSR();
 //console.log(last_nsrs)
 
+// Variables that will storage Raw CSV and Raw AFD Data
 const afds: AFD[] = [];
 const raw_csvs: RawCSV[] = [];
 
+// Map to treat duplicity in CSV's 
 const users_from_csv = new Map<number, string>();
-let headers: string | undefined = "";
+let headers: string | undefined = ""; //variable to storage the header of csv
 
 await Promise.all(
   clocks.map(async (clock: Clock) => {
     // login to clock
     const session = await login(clock);
 
-    if (session) {
-      //if valid sessiojn
+    if (session) { //if valid session
+      
       const last_nsr = last_nsrs.find(
         (last_nsr: NSR) => last_nsr.clock_id === clock.id
       );
@@ -51,18 +52,20 @@ await Promise.all(
         session,
         clock,
         Number(last_nsr.last_nsr) + 2
-      ); //get afd by intial nsr
+      ); //get afd by intial nsr according to the correct clock
 
       //console.log(parseCsv(raw_csv))
 
-      await logout(clock, session);
+      await logout(clock, session); //IN THE FUTURE WE SHOULD USE THE SAME SESSION FOR THE ENTIRE PROGRAM, AND IN THE NEXT STEPS WE NEED TO VERIFY IF THE SESSIOS IS STILL VALID, IF CONTRARY, WE SHOULD START A NEW SESSION
 
+      // FINALLY WE STORAGE THE AFD RETURNED AND ITS CORRESPONDING CLOCK ID
       const afd_object = {
         clock_id: clock.id,
         afd: afd,
       } as AFD;
 
       afds.push(afd_object);
+
     } else {
       console.log("Failed login");
       return [];

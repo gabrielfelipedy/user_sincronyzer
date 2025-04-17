@@ -74,6 +74,7 @@ export async function getLastNSR() {
   }
 }
 
+// RETURNS THE AFD PROCESSED IN A ARRAY
 export async function getAfdByInitialNSR(
   session: string,
   clock: Clock,
@@ -141,17 +142,12 @@ export async function getAfdByInitialNSR(
         console.log("Nâo foram localizados novos registros de pontos");
       }
 
-      // conn.disconnect();
     } else {
       console.log("Arquivo AFD em branco");
     }
 
     return registros;
 
-    // if (response.data !== "") {
-    //   fs.writeFileSync(`${fileName}`, response.data, null, 2);
-    //   console.log(`Resposta salva em ${fileName}`);
-    // }
   } catch (error) {
     console.error(error);
 
