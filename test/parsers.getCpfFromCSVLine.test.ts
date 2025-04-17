@@ -1,7 +1,6 @@
 import { describe, it, expect, test } from "vitest";
 import { getCpfFromCsvLine } from "../src/utils/Parsers.js";
 
-
 //=============================================================================
 //region getCpfFromCsvLine
 //=============================================================================
