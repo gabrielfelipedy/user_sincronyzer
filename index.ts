@@ -22,6 +22,7 @@ import { MergeUsers } from "./src/utils/Merger.js";
 dotenv.config();
 
 //GET ALL TIME CLOCKS
+//OBS VERIFY IF THE CLOCKS ARE THE SAME
 const clocks = await getAllClocks();
 //console.log(clocks)
 
