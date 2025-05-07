@@ -1,9 +1,8 @@
 import { AFD } from "../models/interfaces/AFD.js";
-import { AFDProcessed } from "../models/interfaces/AFDProcessed.js";
 import { Record } from "../models/interfaces/Record.js";
 
 
-
+//Divides a CSV into header and lines
 export function parseCsv(csvString: string): { header: string | undefined; lines: string[] }  {
   const allLines = csvString.trim().split(/\r?\n/); // Split by newline, handle \r\n and \n
   const header = allLines.length > 0 ? allLines[0] : '';
@@ -13,35 +12,49 @@ export function parseCsv(csvString: string): { header: string | undefined; lines
 
 
 export function getCpfFromCsvLine(line: string, separator = ';'): number | null {
-  if (!line) return null;
-  const columns = line.split(separator);
+  if (!line || line.trim() === '') return null; //Verifys if string is null, undefined, empty of just with blank spaces
 
-  if(!columns || !columns[0]) return null
+  const columns = line.split(separator); //split into an array
 
-  return columns.length > 0 ? Number(columns[0].trim()) : null;
+  if(!columns || !columns[0]?.trim()) return null //if failed spliting or don't have generated any element
+
+  const parsedCPF = Number(columns[0].trim())
+
+  if(isNaN(parsedCPF) || !isFinite(parsedCPF)) return null
+
+  return parsedCPF
 }
 
 
-// function escapeCsvValue(value: any): string {
-//   if (value === null || value === undefined) {
-//     return ""; // Represent null/undefined as empty string
-//   }
+// TODO: THROW EXCEPTIONS TO KNOW WHAT EXCALTY IS EVERY THING
+function isValidateEntries(timestamp: string, cpf: string, op: string, nsr: string)
+{
+  //verifys if are not passed empty values, null, undefined of NaN
+  if(!timestamp || !cpf || !op || !nsr) return false
 
-//   const stringValue = String(value); // Convert boolean, number, etc., to string
+  //verify if the length of string is correct
+  if(!(timestamp.length === 24 && cpf.length === 11 && op.length === 1 && nsr.length === 9)) return false
 
-//   // Check if quoting is needed (contains delimiter, quote, or newline)
-//   if (/[";\n]/.test(stringValue)) {
-//     // Escape internal double quotes by doubling them
-//     const escapedValue = stringValue.replace(/"/g, '""');
-//     // Wrap the entire value in double quotes
-//     return `"${escapedValue}"`;
-//   }
+  //verify if timestamp is valid
+  const timestampObj = new Date(timestamp);
 
-//   // No special characters, return as is
-//   return stringValue;
-// }
+  if(isNaN(timestampObj.getTime()))
+  {
+    //console.log("Invalid timestamp")
+    return false
+  }
+
+  //verify if operation is valid
+  if(!(['A', 'E', 'I'].includes(op))) return false
+
+  return true
+}
 
 export function parseAFDString(afdString: string, clock_id: number): Record | null {
+
+  //verifty if clock_id is valid
+  if(!isFinite(clock_id) || !clock_id || isNaN(clock_id)) return null 
+
   const timestampStart = 10;
   const timestampEnd = 34;
   const cpfStart = 36;
@@ -51,38 +64,30 @@ export function parseAFDString(afdString: string, clock_id: number): Record | nu
   const opStart = 34;
   const opEnd = 35;
 
-  if(afdString.length < cpfEnd)
+  if(!afdString || afdString.length < cpfEnd)
   {
     console.log('Invalid string afd')
     return null
   }
 
-  const timestampStr = afdString.substring(timestampStart, timestampEnd);
-  const cpf = Number(afdString.substring(cpfStart, cpfEnd));
-  const operation = afdString.substring(opStart, opEnd);
-  const nsr = Number(afdString.substring(nsrStart, nsrEnd))
+  const timestampStr = afdString.substring(timestampStart, timestampEnd).trim();
+  const cpf = afdString.substring(cpfStart, cpfEnd).trim();
+  const operation = afdString.substring(opStart, opEnd).trim();
+  const nsr = afdString.substring(nsrStart, nsrEnd).trim()
 
-  const timestamp = new Date(timestampStr);
-  if(isNaN(timestamp.getTime()))
-  {
-    console.log("Invalid timestamp")
-    return null
-  }
+  if(!isValidateEntries(timestampStr, cpf, operation, nsr)) return null
 
 
   return {
     clock_id,
-    cpf,
+    cpf: Number(cpf),
     operation,
-    timestamp,
-    nsr,
+    timestamp: new Date(timestampStr),
+    nsr: Number(nsr),
     fullAfdString: afdString,
   };
 }
 
-
-// SE FOR EVENTO DE EXCLUSÃO DE USUÁRIO - EXCLUIR USUÁRIO DO CSV
-// SE FOR EVENTO DE INSERÇÃO OU ALTERAÇÃO - SUBSTITUI USUÁRIO DO CSV
 
 export function parseDuplicatedData(data: AFD[])
 {
@@ -90,8 +95,12 @@ export function parseDuplicatedData(data: AFD[])
 
     for(const record of data)
     {
+        if(!record) continue
+
         for(const afdString of record.afd)
         {
+          if(!afdString) continue
+
             const parsedRecord = parseAFDString(afdString, record.clock_id)
 
             if(parsedRecord)
@@ -108,66 +117,4 @@ export function parseDuplicatedData(data: AFD[])
 
     return latestEntriesByCpf
 
-    // const groupedByClockId = new Map<number, Record[]>
-
-    // for(const record of Array.from(latestEntriesByCpf.values()))
-    // {
-    //   const key = record.clock_id
-
-    //   if(groupedByClockId.has(key))
-    //   {
-    //     groupedByClockId.get(key)?.push(record)
-    //   }
-    //   else
-    //   {
-    //     groupedByClockId.set(key, [record])
-    //   }
-    // }
-
- 
-    // const result: AFDProcessed[] = Array.from(groupedByClockId.entries()).map(([clockId, records]) => {
-     
-    //   const sortedRecords = records.sort((a, b) => a.nsr - b.nsr); 
-  
-    //   return {
-    //     clock_id: clockId,
-    //     afd: sortedRecords
-    //   };
-    // });
-  
-    // return result;
 }
-
-
-
-// export const usersToCSV = (users: User[] | undefined) => {
-//   if (!users || users.length === 0) {
-//     return "";
-//   }
-
-//   const headers: (keyof User)[] = [
-//     "cpf",
-//     "nome",
-//     "administrador",
-//     "matricula",
-//     "rfid",
-//     "codigo",
-//     "senha",
-//     "barras",
-//     "digitais",
-//   ];
-
-//   const headerString = headers.join(";");
-
-//   const dataRows = users.map((user) => {
-//     const rowValues = headers.map((header) => {
-//       const value = user[header];
-
-//       return escapeCsvValue(value);
-//     });
-
-//     return rowValues.join(";");
-//   });
-
-//   return [headerString, ...dataRows].join("\r\n");
-// };

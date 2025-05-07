@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsc --watch & nodemon"
+    "test": "vitest",
+    "coverage": "vitest run --coverage",
+    "dev": "tsc --watch & nodemon",
+    "build": "npx esbuild index.ts --bundle --outfile=dist/bundle.js --platform=node --format=esm --packages=external && cp clocks.json dist/ && cp nsr.json dist/ && cp .env dist/"
   },
   "type": "module",
   "keywords": [],
@@ -13,8 +15,11 @@
   "description": "",
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "@vitest/coverage-v8": "^3.1.1",
+    "esbuild": "^0.25.2",
     "nodemon": "^3.1.9",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.1"
   },
   "dependencies": {
     "axios": "^1.8.4",
