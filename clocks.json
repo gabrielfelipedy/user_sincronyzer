@@ -10,5 +10,11 @@
     "ip": "172.18.5.241",
     "user": "admin",
     "password": "admin"
+  },
+  {
+    "id": 9,
+    "ip": "172.18.33.243",
+    "user": "admin",
+    "password": "admin"
   }
 ]
