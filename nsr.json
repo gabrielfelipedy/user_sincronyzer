@@ -1,14 +1,18 @@
 [
   {
     "clock_id": 5,
-    "last_nsr": 300
+    "last_nsr": 303
   },
   {
     "clock_id": 4,
-    "last_nsr": 225
+    "last_nsr": 237
+  },
+  {
+    "clock_id": 7,
+    "last_nsr": 216
   },
   {
     "clock_id": 9,
-    "last_nsr": 0
+    "last_nsr": 216
   }
 ]
