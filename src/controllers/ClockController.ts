@@ -14,24 +14,52 @@ export const WriteClockUsers = async (
 ) => {
   if (!users || !clock || !session) return "";
 
+  //users = users.replace(/[^\x09\x0A\x0D\x20-\x7E]/g, "");
+  const utf8Buffer = Buffer.from(users, 'utf-8');
+
   try {
     const config = {
+      timeout: 1000000,
+      timeoutErrorMessage: "Timeout error",
       headers: {
         "content-Type": "application/octet-stream",
-        "content-Length": new TextEncoder().encode(users).length,
+        "content-Length": utf8Buffer.length,
       },
     };
 
     const response: AxiosResponse = await axios.post(
       `https:${clock.ip}/import_users_csv.fcgi?session=${session}&mode=671`,
-      users,
+      utf8Buffer,
       config
     );
 
     console.log("CSV uploaded sucessfully");
     return true;
   } catch (error) {
-    console.error(error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.code === 'ECONNABORTED') {
+        // This code specifically indicates a timeout
+        console.error('Request timed out:', axiosError.message);
+        // You might want to throw a custom error or return a specific status
+      } else if (axiosError.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.error('Server responded with an error:', axiosError.response.status, axiosError.response.data);
+      } else if (axiosError.request) {
+        // The request was made but no response was received
+        // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+        // http.ClientRequest in node.js
+        console.error('No response received:', axiosError.request);
+        // This can also be a "socket hang up" if the server closed the connection without a response
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        console.error('Error setting up request:', axiosError.message);
+      }
+    } else {
+      // Non-Axios error
+      console.error('An unexpected error occurred:', error);
+    }
     return false;
   }
 };

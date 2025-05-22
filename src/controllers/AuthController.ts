@@ -22,8 +22,8 @@ export const login = async (clock: Clock | undefined) => {
   }
 }
 
-export const logout = async (clock: Clock | undefined, session: string) => {
-  if(!clock) return null
+export const logout = async (clock: Clock | undefined, session: string | undefined) => {
+  if(!clock || !session) return null
 
   //console.log('CLOCK IP GOT: ', clock.ip)
 
